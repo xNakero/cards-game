@@ -3,32 +3,6 @@ from typing import List
 
 import requests
 
-"""
-    def new_game(self):
-        new_deck = requests.get("https://deckofcardsapi.com/api/deck/new/shuffle")
-        deck_id = new_deck.json()['deck_id']
-        response = requests.get('https://deckofcardsapi.com/api/deck/' + deck_id + '/draw/?count=52')
-        response = response.json()
-        codes = list()
-        for el in response.get('cards'):
-            codes.append(el['code'])
-            print(el['code'])
-        print(len(codes))
-        for i in range(0, 15):
-            player_one_hand.append()
-            
-            requests.get('https://deckofcardsapi.com/api/deck/' + deck_id + '/pile/player1_hand/add/?cards=' + codes[i])
-            requests.get('https://deckofcardsapi.com/api/deck/' + deck_id + '/pile/player2_hand/add/?cards=' + codes[i + 10])
-        for i in range(30, 35):
-            requests.get('https://deckofcardsapi.com/api/deck/' + deck_id + '/pile/player1/add/?cards=' + codes[i])
-            requests.get('https://deckofcardsapi.com/api/deck/' + deck_id + '/pile/player2/add/?cards=' + codes[i+5])
-        for i in range(36, 40):
-            requests.get('https://deckofcardsapi.com/api/deck/' + deck_id + '/pile/left_pile/add/?cards=' + codes[i])
-            requests.get('https://deckofcardsapi.com/api/deck/' + deck_id + '/pile/right_pile/add/?cards=' + codes[i + 10])
-        requests.get('https://deckofcardsapi.com/api/deck/' + deck_id + '/pile/left_pile_visible/add/?cards=' + codes[50])
-        requests.get('https://deckofcardsapi.com/api/deck/' + deck_id + '/pile/right_pile_visible/add/?cards=' + codes[51])
-"""
-
 
 @dataclass
 class Card:
@@ -62,14 +36,17 @@ class Deck:
     players: List[Player] = field(default_factory=list)
     piles: List[Pile] = field(default_factory=list)
 
-    def load_data_new_game(self, name_one: str, name_two: str):
+    def init_objects_with_names(self, name_one: str, name_two: str):
         self.players.append(Player(name=name_one))
         self.players.append(Player(name=name_two))
         self.piles.append(Pile())
         self.piles.append(Pile())
+
+    def load_data_new_game(self, name_one: str, name_two: str):
+        self.init_objects_with_names(name_one=name_one, name_two=name_two)
         new_deck = requests.get("https://deckofcardsapi.com/api/deck/new/shuffle")
-        deck_id = new_deck.json()['deck_id']
-        response = requests.get('https://deckofcardsapi.com/api/deck/' + deck_id + '/draw/?count=52')
+        self.deck_id = new_deck.json()['deck_id']
+        response = requests.get('https://deckofcardsapi.com/api/deck/' + self.deck_id + '/draw/?count=52')
         response = response.json()
         codes = list()
         for el in response.get('cards'):
@@ -87,7 +64,7 @@ class Deck:
                     Card(image=codes[i + j * 5]['image'], value=codes[i + j * 5]['value'],
                          suit=codes[i + j * 5]['suit'],
                          code=codes[i + j * 5]['code']))
-        for i in range(36, 40):
+        for i in range(40, 45):
             for j in range(0, 2):
                 self.piles[j].hidden \
                     .append(
@@ -148,7 +125,72 @@ class Deck:
             if (self.can_be_placed(player_id=0, pile_id=0, card_id=i) or
                     self.can_be_placed(player_id=0, pile_id=1, card_id=i) or
                     self.can_be_placed(player_id=1, pile_id=0, card_id=i) or
-                    self.can_be_placed(player_id=1, pile_id=1, card_id=i) or):
+                    self.can_be_placed(player_id=1, pile_id=1, card_id=i)):
                 return False
         return True
+
+    def save_deck_to_api(self):
+        for i in range(0, 2):
+            for card in self.players[i].hidden:
+                if card is not None:
+                    requests.get(
+                        'https://deckofcardsapi.com/api/deck/' + self.deck_id + '/pile/player_' + str(i) + '_hidden/add/?cards=' +
+                        card.code)
+
+            for card in self.players[i].hand:
+                if card is not None:
+                    requests.get(
+                        'https://deckofcardsapi.com/api/deck/' + self.deck_id + '/pile/player_' + str(i) + '_hand/add/?cards=' +
+                        card.code)
+
+            for card in self.piles[i].hidden:
+                if card is not None:
+                    requests.get(
+                        'https://deckofcardsapi.com/api/deck/' + self.deck_id + '/pile/pile_' + str(i) + '_hidden/add/?cards=' +
+                        card.code)
+
+            if self.piles[i].visible.code is not None:
+                requests.get(
+                    'https://deckofcardsapi.com/api/deck/' + self.deck_id + '/pile/pile_' + str(i) + '_visible/add/?cards=' +
+                    self.piles[i].visible.code)
+
+    def load_deck_from_api(self, name_one: str, name_two: str, deck_id: str):
+        self.init_objects_with_names(name_one=name_one, name_two=name_two)
+        self.deck_id = deck_id
+        for i in range(0, 2):
+            resp = requests.get('https://deckofcardsapi.com/api/deck/' + self.deck_id + '/pile/player_' + str(i) + '_hand/list/')
+            resp = resp.json().get('piles').get('player_' + str(i) + '_hand').get('cards')
+            for card in resp:
+                print(card['code'])
+                self.players[i].hand.append(Card(image=card['image'], value=card['value'], suit=card['suit'], code=card['code']))
+
+            resp = requests.get('https://deckofcardsapi.com/api/deck/' + self.deck_id + '/pile/player_' + str(i) + '_hidden/list/')
+            resp = resp.json().get('piles').get('player_' + str(i) + '_hidden').get('cards')
+            for card in resp:
+                self.players[i].hidden.append(Card(image=card['image'], value=card['value'], suit=card['suit'], code=card['code']))
+
+            resp = requests.get('https://deckofcardsapi.com/api/deck/' + self.deck_id + '/pile/pile_' + str(i) + '_hidden/list/')
+            resp = resp.json().get('piles').get('pile_' + str(i) + '_hidden').get('cards')
+            for card in resp:
+                self.piles[i].hidden.append(Card(image=card['image'], value=card['value'], suit=card['suit'], code=card['code']))
+
+            resp = requests.get('https://deckofcardsapi.com/api/deck/' + self.deck_id + '/pile/pile_' + str(i) + '_visible/list/')
+            resp = resp.json().get('piles').get('pile_' + str(i) + '_visible').get('cards')
+            for card in resp:
+                self.piles[i].visible = Card(image=card['image'], value=card['value'], suit=card['suit'], code=card['code'])
+
+    def print_lists(self):
+        print(self.deck_id)
+        for i in range(0, 2):
+            print(i, 'hand')
+            for card in self.players[i].hand:
+                print(card)
+            print(i, 'hidden player')
+            for card in self.players[i].hidden:
+                print(card)
+            print(i, 'visible')
+            print(self.piles[i].visible)
+            print(i, 'hidden pile')
+            for card in self.piles[i].hidden:
+                print(card)
 
