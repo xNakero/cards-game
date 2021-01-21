@@ -107,12 +107,48 @@ class Deck:
             for i in range(0, 5):
                 print(self.players[player_id].hand[i])
 
-
-    def can_be_placed(self, player_id: int, pile_id, card_id):
-        print(self.players[player_id].hand[card_id].value)
-        print(self.piles[pile_id].visible.value)
-        if (self.PREVIOUS_CARD.get(str(self.players[player_id].hand[card_id].value)) == self.piles[pile_id].visible.value or
-                self.NEXT_CARD.get(str(self.players[player_id].hand[card_id].value)) == self.piles[pile_id].visible.value):
+    def can_be_placed(self, player_id: int, pile_id: int, card_id: int) -> bool:
+        if (self.PREVIOUS_CARD.get(str(self.players[player_id].hand[card_id].value)) == self.piles[
+            pile_id].visible.value or
+                self.NEXT_CARD.get(str(self.players[player_id].hand[card_id].value)) == self.piles[
+                    pile_id].visible.value):
             return True
         return False
+
+    def add_missing_cards(self, player_id: int):
+        print(len(self.players[player_id].hand), len(self.players[player_id].hidden))
+        for card in self.players[player_id].hand:
+            if len(self.players[player_id].hidden) == 0:
+                break
+            if card is None:
+                self.add_card(player_id, self.players[player_id].hand.index(card))
+        print(len(self.players[player_id].hand), len(self.players[player_id].hidden))
+        for card in self.players[player_id].hand:
+            print(card)
+
+    def add_card(self, player_id: int, list_index: int):
+        self.players[player_id].hand.pop(list_index)
+        self.players[player_id].hand.insert(list_index, self.players[player_id].hidden[0])
+        self.players[player_id].hidden.pop(0)
+
+    def has_won(self, player_id: int) -> bool:
+        if len(self.players[player_id].hand) == 0 and len(self.players[player_id].hidden) == 0:
+            return True
+        return False
+
+    def turn_card_on_piles(self):
+        if self.can_cards_be_turned_on_piles():
+            for i in range(0, 2):
+                self.piles[i].hidden.append(self.piles[i].visible)
+                self.piles[i].visible = self.piles[i].hidden[0]
+                self.piles[i].hidden.pop(0)
+
+    def can_cards_be_turned_on_piles(self) -> bool:
+        for i in range(0, 5):
+            if (self.can_be_placed(player_id=0, pile_id=0, card_id=i) or
+                    self.can_be_placed(player_id=0, pile_id=1, card_id=i) or
+                    self.can_be_placed(player_id=1, pile_id=0, card_id=i) or
+                    self.can_be_placed(player_id=1, pile_id=1, card_id=i) or):
+                return False
+        return True
 
