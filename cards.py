@@ -120,9 +120,13 @@ class Deck:
         self.players[player_id].hidden.pop(0)
 
     def has_won(self, player_id: int) -> bool:
-        if len(self.players[player_id].hand) == 0 and len(self.players[player_id].hidden) == 0:
+        if len(self.players[player_id].hidden) == 0:
+            for card in self.players[player_id].hand:
+                if card is not None:
+                    return False
             return True
-        return False
+        else:
+            return False
 
     def turn_cards_on_piles(self):
         if self.can_cards_be_turned_on_piles():
@@ -138,7 +142,7 @@ class Deck:
                     return False
             for j in range(0, 5):
                 if (self.can_be_placed(player_id=i, pile_id=0, card_id=j) or
-                    self.can_be_placed(player_id=i, pile_id=1, card_id=j)):
+                        self.can_be_placed(player_id=i, pile_id=1, card_id=j)):
                     return False
         return True
 

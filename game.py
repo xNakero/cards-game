@@ -148,10 +148,17 @@ class Game:
                     elif event.key == K_q:
                         if self.chosen_card[1] in range(0, 5):
                             self.deck.play_card(player_id=1, pile_id=0, card_id=self.chosen_card[1])
+                            if self.deck.has_won(player_id=1):
+                                print('won game')
+                                self.end_game(self.deck.players[1].name)
                         self.chosen_card[1] = -1
                     elif event.key == K_w:
                         if self.chosen_card[1] in range(0, 5):
                             self.deck.play_card(player_id=1, pile_id=1, card_id=self.chosen_card[1])
+                            if self.deck.has_won(player_id=1):
+                                print('won game')
+                                self.end_game(self.deck.players[1].name)
+                                run = False
                         self.chosen_card[1] = -1
                     elif event.key == K_r:
                         self.deck.add_missing_cards(player_id=1)
@@ -221,6 +228,9 @@ class Game:
             card_rect.top = self.CARD_HEIGHT_PILES
             if card_rect.collidepoint(mx, my) and self.click and self.chosen_card[0] in range(0, 5):
                 self.deck.play_card(player_id=0, pile_id=i, card_id=self.chosen_card[0])
+                if self.deck.has_won(player_id=0):
+                    print('won game')
+                    self.end_game(self.deck.players[0].name)
                 self.chosen_card[0] = -1
             self.screen.blit(card, card_rect)
             width_piles += 150
@@ -234,6 +244,20 @@ class Game:
             self.deck.turn_cards_on_piles()
         self.screen.blit(card, card_rect)
 
+    def end_game(self, name: str):
+        self.screen.fill((0, 0, 0))
+        background = pygame.image.load('resources/board_background.png')
+        self.screen.blit(background, (0, 0))
+        run = True
+        while run:
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == KEYDOWN:
+                    self.main_menu()
+            pygame.display.update()
+
     def draw_text_menu(self, text, color, height: int, type: str = 'button'):
         if type == 'head':
             text_obj = self.MENU_HEADLINE_FONT.render(text, True, color)
@@ -242,7 +266,6 @@ class Game:
         text_rect = text_obj.get_rect()
         text_rect.center = (self.WINDOW_WIDTH / 2, height)
         self.screen.blit(text_obj, text_rect)
-
 
 g = Game()
 g.run()
