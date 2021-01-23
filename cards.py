@@ -223,9 +223,9 @@ class Deck:
         file.write(self.deck_id)
 
     def open_id_from_file(self):
-        path = 'resources/card_images/deck_id.txt'
+        path = 'resources/saves'
         if os.path.exists(path):
-            with open('deck_id.txt', 'r') as file:
+            with open(path + '/deck_id.txt', 'r') as file:
                 self.deck_id = file.read()
         else:
             print('there is no save')
@@ -239,9 +239,10 @@ class Deck:
             file.write(json_str)
 
     def open_deck_from_json(self):
+        print('started open from json')
         path = 'resources/saves'
         if os.path.exists(path):
-            with open('save.json', 'r') as file:
+            with open(path + '/save.json', 'r') as file:
                 data = json.load(file)
                 self.deck_id = data['deck_id']
         else:
@@ -264,13 +265,14 @@ class Deck:
             for card in el['hidden']:
                 self.piles[i].hidden.append(
                     Card(image=card['image'], value=card['value'], suit=card['suit'], code=card['code']))
-            for card in el['visible']:
-                self.piles[i].visible = Card(image=card['image'], value=card['value'],
-                                         suit=card['suit'], code=card['code'])
+            self.piles[i].visible = Card(image=el['visible']['image'], value=el['visible']['value'],
+                                         suit=el['visible']['suit'], code=el['visible']['code'])
             i += 1
         self.load_images()
+        print('ended open from json')
 
     def load_images(self):
+        print('started loading images')
         path = 'resources/card_images'
         if not os.path.exists(path):
             os.makedirs(path)
@@ -278,6 +280,7 @@ class Deck:
         consume(consume(self.load_image(path, card) for card in self.players[i].hidden) for i in range(0, 2))
         consume(consume(self.load_image(path, card) for card in self.piles[i].hidden) for i in range(0, 2))
         consume(self.load_image(path, self.piles[i].visible) for i in range(0, 2))
+        print('ended loading images')
 
     def load_image(self, path: str, card: Card):
         path = 'resources/card_images'
@@ -285,3 +288,25 @@ class Deck:
             response = requests.get(card.image)
             with open(path + '/' + card.code + '.png', 'wb') as file:
                 file.write(response.content)
+
+
+"""
+s = Deck()
+s.load_data_new_game('x', 'd')
+s.save_deck_to_api()
+s.save_id_to_file()
+s.save_deck_to_json()
+d = Deck()
+d.open_id_from_file()
+l = d.deck_id
+d.load_deck_from_api('x', 'd', l)
+d.print_lists()
+"""
+"""
+s = Deck()
+s.open_id_from_file()
+l = s.deck_id
+d = Deck()
+d.open_deck_from_json()
+d.print_lists()
+"""
