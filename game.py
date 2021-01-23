@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 from typing import List
 
 import pygame
+from pip._internal.utils.misc import consume
 from pygame.locals import *
 
 import cards
@@ -13,6 +14,8 @@ class Game:
     click = False
     screen: pygame.display = field(init=False)
     deck = cards.Deck()
+    # chosen card for players 0 or 1, 0 - 4 are cards, else is nothing chosen
+    chosen_card: List[int] = field(default_factory=list)
     WHITE = (255, 255, 255)
     BLACK = (0, 0, 0)
     CARD_WIDTH = 113
@@ -101,22 +104,27 @@ class Game:
             self.deck.open_id_from_file()
             id = self.deck.deck_id
             self.deck.load_deck_from_api(name_one='x', name_two='d', deck_id=id)
+        self.chosen_card = [-1 for i in range(0, 2)]
         run = True
         while run:
             self.draw_text_menu('temp' + start_type, self.BLACK, 200)
             background = pygame.image.load('resources/board_background.png')
             self.screen.blit(background, (0, 0))
-            #card_back = pygame.image.load('resources/card_images/4C.png')
-            #card_back = pygame.transform.scale(card_back, (self.CARD_WIDTH, self.CARD_HEIGHT))
-            #self.screen.blit(card_back, (200, 200))
             self.draw_cards()
+            self.click = False
             for event in pygame.event.get():
                 if event.type == QUIT:
                     pygame.quit()
                     sys.exit()
+                if event.type == MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        self.click = True
+
             pygame.display.update()
 
     def draw_cards(self):
+        mx, my = pygame.mouse.get_pos()
+
         for i in range(0, 2):
             width = self.CARD_STARTING_WIDTH_PLAYERS
             for card in self.deck.players[i].hand:
@@ -124,7 +132,22 @@ class Game:
                     index = self.deck.players[i].hand.index(card)
                     card = pygame.image.load('resources/card_images/' + card.code + '.png')
                     card = pygame.transform.scale(card, (self.CARD_WIDTH, self.CARD_HEIGHT))
-                    self.screen.blit(card, (width, self.CARD_HEIGHT_PLAYERS[i]))
+                    card_rect = card.get_rect()
+                    card_rect.left = width
+                    card_rect.top = self.CARD_HEIGHT_PLAYERS[i]
+                    if i == 0:
+                        if card_rect.collidepoint(mx, my):
+                            if self.click:
+                                if self.chosen_card[i] == index:
+                                    self.chosen_card[i] = -1
+                                else:
+                                    self.chosen_card[i] = index
+                                print(self.chosen_card[i])
+                        if self.chosen_card[i] == index:
+                            card_rect.y -= 20
+                    else:
+                        pass
+                    self.screen.blit(card, card_rect)
                 width += 150
             width += 50
             if len(self.deck.players[i].hidden) > 0:
