@@ -29,7 +29,7 @@ class Game:
     CARD_HEIGHT_PLAYERS = [600, 43]
     CARD_STARTING_WIDTH_PLAYERS = 100
     CARD_HEIGHT_PILES = 321
-    CARD_WIDTH_PILES = 200
+    CARD_WIDTH_PILES = 175
 
     def __post_init__(self):
         pygame.init()
@@ -161,8 +161,10 @@ class Game:
 
     def draw_cards(self):
         mx, my = pygame.mouse.get_pos()
+        width_piles = 0
 
         for i in range(0, 2):
+            # hand
             width = self.CARD_STARTING_WIDTH_PLAYERS
             for card in self.deck.players[i].hand:
                 if card is not None:
@@ -188,28 +190,49 @@ class Game:
                     self.screen.blit(card, card_rect)
                 width += 150
             width += 50
+            #hidden
             if len(self.deck.players[i].hidden) > 0:
                 card = pygame.image.load('resources/card_back.png')
                 card = pygame.transform.scale(card, (self.CARD_WIDTH, self.CARD_HEIGHT))
-                self.screen.blit(card, (width, self.CARD_HEIGHT_PLAYERS[i]))
-            if i == 0:
-                width = self.CARD_WIDTH_PILES
-                card = pygame.image.load('resources/card_back.png')
-                card = pygame.transform.scale(card, (self.CARD_WIDTH, self.CARD_HEIGHT))
-                self.screen.blit(card, (width, self.CARD_HEIGHT_PILES))
-                width += 200
-                card = pygame.image.load('resources/card_images/' + self.deck.piles[i].visible.code + '.png')
-                card = pygame.transform.scale(card, (self.CARD_WIDTH, self.CARD_HEIGHT))
-                self.screen.blit(card, (width, self.CARD_HEIGHT_PILES))
-            else:
-                width = 1000 - self.CARD_WIDTH_PILES
-                card = pygame.image.load('resources/card_back.png')
-                card = pygame.transform.scale(card, (self.CARD_WIDTH, self.CARD_HEIGHT))
-                self.screen.blit(card, (width, self.CARD_HEIGHT_PILES))
-                width -= 200
-                card = pygame.image.load('resources/card_images/' + self.deck.piles[i].visible.code + '.png')
-                card = pygame.transform.scale(card, (self.CARD_WIDTH, self.CARD_HEIGHT))
-                self.screen.blit(card, (width, self.CARD_HEIGHT_PILES))
+                card_rect = card.get_rect()
+                card_rect.left = width
+                card_rect.top = self.CARD_HEIGHT_PLAYERS[i]
+                if i == 0 and card_rect.collidepoint(mx, my) and self.click:
+                    self.deck.add_missing_cards(player_id=0)
+                self.screen.blit(card, card_rect)
+        #piles
+        #pile left hidden
+        width_piles = self.CARD_WIDTH_PILES
+        card = pygame.image.load('resources/card_back.png')
+        card = pygame.transform.scale(card, (self.CARD_WIDTH, self.CARD_HEIGHT))
+        card_rect = card.get_rect()
+        card_rect.left = width_piles
+        card_rect.top = self.CARD_HEIGHT_PILES
+        if card_rect.collidepoint(mx, my) and self.click:
+            self.deck.turn_cards_on_piles()
+        self.screen.blit(card, card_rect)
+        width_piles += 150
+        #piles visible
+        for i in range(0, 2):
+            card = pygame.image.load('resources/card_images/' + self.deck.piles[i].visible.code + '.png')
+            card = pygame.transform.scale(card, (self.CARD_WIDTH, self.CARD_HEIGHT))
+            card_rect = card.get_rect()
+            card_rect.left = width_piles
+            card_rect.top = self.CARD_HEIGHT_PILES
+            if card_rect.collidepoint(mx, my) and self.click and self.chosen_card[0] in range(0, 5):
+                self.deck.play_card(player_id=0, pile_id=i, card_id=self.chosen_card[0])
+                self.chosen_card[0] = -1
+            self.screen.blit(card, card_rect)
+            width_piles += 150
+        #right pile hidden
+        card = pygame.image.load('resources/card_back.png')
+        card = pygame.transform.scale(card, (self.CARD_WIDTH, self.CARD_HEIGHT))
+        card_rect = card.get_rect()
+        card_rect.left = width_piles
+        card_rect.top = self.CARD_HEIGHT_PILES
+        if card_rect.collidepoint(mx, my) and self.click:
+            self.deck.turn_cards_on_piles()
+        self.screen.blit(card, card_rect)
 
     def draw_text_menu(self, text, color, height: int, type: str = 'button'):
         if type == 'head':
