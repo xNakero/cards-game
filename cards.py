@@ -123,7 +123,7 @@ class Deck:
             return True
         return False
 
-    def turn_card_on_piles(self):
+    def turn_cards_on_piles(self):
         if self.can_cards_be_turned_on_piles():
             for i in range(0, 2):
                 self.piles[i].hidden.append(self.piles[i].visible)

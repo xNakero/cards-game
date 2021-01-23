@@ -116,10 +116,47 @@ class Game:
                 if event.type == QUIT:
                     pygame.quit()
                     sys.exit()
-                if event.type == MOUSEBUTTONDOWN:
+                elif event.type == MOUSEBUTTONDOWN:
                     if event.button == 1:
                         self.click = True
-
+                elif event.type == KEYDOWN:
+                    if event.key == K_1:
+                        if self.chosen_card[1] == 0:
+                            self.chosen_card[1] = -1
+                        else:
+                            self.chosen_card[1] = 0
+                    elif event.key == K_2:
+                        if self.chosen_card[1] == 1:
+                            self.chosen_card[1] = -1
+                        else:
+                            self.chosen_card[1] = 1
+                    elif event.key == K_3:
+                        if self.chosen_card[1] == 2:
+                            self.chosen_card[1] = -1
+                        else:
+                            self.chosen_card[1] = 2
+                    elif event.key == K_4:
+                        if self.chosen_card[1] == 3:
+                            self.chosen_card[1] = -1
+                        else:
+                            self.chosen_card[1] = 3
+                    elif event.key == K_5:
+                        if self.chosen_card[1] == 4:
+                            self.chosen_card[1] = -1
+                        else:
+                            self.chosen_card[1] = 4
+                    elif event.key == K_q:
+                        if self.chosen_card[1] in range(0, 5):
+                            self.deck.play_card(player_id=1, pile_id=0, card_id=self.chosen_card[1])
+                        self.chosen_card[1] = -1
+                    elif event.key == K_w:
+                        if self.chosen_card[1] in range(0, 5):
+                            self.deck.play_card(player_id=1, pile_id=1, card_id=self.chosen_card[1])
+                        self.chosen_card[1] = -1
+                    elif event.key == K_r:
+                        self.deck.add_missing_cards(player_id=1)
+                    elif event.key == K_SPACE:
+                        self.deck.turn_cards_on_piles()
             pygame.display.update()
 
     def draw_cards(self):
@@ -146,7 +183,8 @@ class Game:
                         if self.chosen_card[i] == index:
                             card_rect.y -= 20
                     else:
-                        pass
+                        if self.chosen_card[i] == index:
+                            card_rect.y += 20
                     self.screen.blit(card, card_rect)
                 width += 150
             width += 50
