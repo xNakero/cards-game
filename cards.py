@@ -30,10 +30,10 @@ class Pile:
 
 @dataclass()
 class Deck:
-    PREVIOUS_CARD = {'2': 'ACE', '3': '2', '4': '3', '5': '4', '6': '5', '7': '6', '8': '7', '9': '8', '0': '9',
-                     'JACK': '0',
+    PREVIOUS_CARD = {'2': 'ACE', '3': '2', '4': '3', '5': '4', '6': '5', '7': '6', '8': '7', '9': '8', '10': '9',
+                     'JACK': '10',
                      'QUEEN': 'JACK', 'KING': 'QUEEN', 'ACE': 'KING'}
-    NEXT_CARD = {'2': '3', '3': '4', '4': '5', '5': '6', '6': '7', '7': '8', '8': '9', '9': '0', '0': 'JACK',
+    NEXT_CARD = {'2': '3', '3': '4', '4': '5', '5': '6', '6': '7', '7': '8', '8': '9', '9': '10', '10': 'JACK',
                  'JACK': 'QUEEN', 'QUEEN': 'KING', 'KING': 'ACE', 'ACE': '2'}
     deck_id: str = field(init=False)
     players: List[Player] = field(default_factory=list)
@@ -95,11 +95,12 @@ class Deck:
                 print(self.players[player_id].hand[i])
 
     def can_be_placed(self, player_id: int, pile_id: int, card_id: int) -> bool:
-        if (self.PREVIOUS_CARD.get(str(self.players[player_id].hand[card_id].value)) == self.piles[
-            pile_id].visible.value or
-                self.NEXT_CARD.get(str(self.players[player_id].hand[card_id].value)) == self.piles[
-                    pile_id].visible.value):
-            return True
+        if self.players[player_id].hand[card_id] is not None:
+            if (self.PREVIOUS_CARD.get(str(self.players[player_id].hand[card_id].value)) == self.piles[
+                pile_id].visible.value or
+                    self.NEXT_CARD.get(str(self.players[player_id].hand[card_id].value)) == self.piles[
+                        pile_id].visible.value):
+                return True
         return False
 
     def add_missing_cards(self, player_id: int):
@@ -131,12 +132,14 @@ class Deck:
                 self.piles[i].hidden.pop(0)
 
     def can_cards_be_turned_on_piles(self) -> bool:
-        for i in range(0, 5):
-            if (self.can_be_placed(player_id=0, pile_id=0, card_id=i) or
-                    self.can_be_placed(player_id=0, pile_id=1, card_id=i) or
-                    self.can_be_placed(player_id=1, pile_id=0, card_id=i) or
-                    self.can_be_placed(player_id=1, pile_id=1, card_id=i)):
-                return False
+        for i in range(0, 2):
+            if None in self.players[i].hand:
+                if len(self.players[i].hidden) > 0:
+                    return False
+            for j in range(0, 5):
+                if (self.can_be_placed(player_id=i, pile_id=0, card_id=j) or
+                    self.can_be_placed(player_id=i, pile_id=1, card_id=j)):
+                    return False
         return True
 
     def save_deck_to_api(self):
