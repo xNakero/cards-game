@@ -1,8 +1,10 @@
 import json
+import os
 from dataclasses import dataclass, field
 from typing import List
 
 import requests
+from pip._internal.utils.misc import consume
 
 
 @dataclass
@@ -42,6 +44,8 @@ class Deck:
         self.players.append(Player(name='player2'))
         self.piles.append(Pile())
         self.piles.append(Pile())
+        for i in range(0, 2):
+            self.piles[i].visible = None
 
     def update_names(self, name_one: str, name_two: str):
         self.players[0].name = name_one
@@ -80,6 +84,7 @@ class Deck:
                                      code=cards[50]['code'])
         self.piles[1].visible = Card(image=cards[51]['image'], value=cards[51]['value'], suit=cards[51]['suit'],
                                      code=cards[51]['code'])
+        self.load_images()
 
     def play_card(self, player_id: int, pile_id: int, card_id: int):
         if self.can_be_placed(player_id, pile_id, card_id):
@@ -195,42 +200,52 @@ class Deck:
             for card in resp:
                 self.piles[i].visible = Card(image=card['image'], value=card['value'], suit=card['suit'],
                                              code=card['code'])
+        self.load_images()
 
     def print_lists(self):
         print(self.deck_id)
         for i in range(0, 2):
             print(i, 'hand')
-            for card in self.players[i].hand:
-                print(card)
+            consume(print(card) for card in self.players[i].hand)
             print(i, 'hidden player')
-            for card in self.players[i].hidden:
-                print(card)
+            consume(print(card) for card in self.players[i].hidden)
             print(i, 'visible')
-            print(self.piles[i].visible)
+            if self.piles[i].visible is not None:
+                print(self.piles[i].visible)
             print(i, 'hidden pile')
-            for card in self.piles[i].hidden:
-                print(card)
+            consume(print(card) for card in self.piles[i].hidden)
 
     def save_id_to_file(self):
-        file = open("deck_id.txt", 'w')
+        path = 'resources/saves'
+        if not os.path.exists(path):
+            os.makedirs(path)
+        file = open(path + '/deck_id.txt', 'w')
         file.write(self.deck_id)
 
     def open_id_from_file(self):
-        with open('deck_id.txt', 'r') as file:
-            self.deck_id = file.read()
+        path = 'resources/card_images/deck_id.txt'
+        if os.path.exists(path):
+            with open('deck_id.txt', 'r') as file:
+                self.deck_id = file.read()
+        else:
+            print('there is no save')
 
     def save_deck_to_json(self):
+        path = 'resources/saves'
+        if not os.path.exists(path):
+            os.makedirs(path)
         json_str = json.dumps(self, default=lambda x: x.__dict__, sort_keys=True, indent=5)
-        with open('save.json', 'w') as file:
+        with open(path + '/save.json', 'w') as file:
             file.write(json_str)
 
     def open_deck_from_json(self):
-        with open('save.json', 'r') as file:
-            data = json.load(file)
-            print(type(data['players'][1]))
-            print(data.get('players'))
-        self.deck_id = data['deck_id']
-        print(self.deck_id)
+        path = 'resources/saves'
+        if os.path.exists(path):
+            with open('save.json', 'r') as file:
+                data = json.load(file)
+                self.deck_id = data['deck_id']
+        else:
+            print('there is no save')
 
         i = 0
         print(data.get('players'))
@@ -249,8 +264,24 @@ class Deck:
             for card in el['hidden']:
                 self.piles[i].hidden.append(
                     Card(image=card['image'], value=card['value'], suit=card['suit'], code=card['code']))
-            self.piles[i].visible = Card(image=el['visible']['image'], value=el['visible']['value'],
-                                         suit=el['visible']['suit'], code=el['visible']['code'])
+            for card in el['visible']:
+                self.piles[i].visible = Card(image=card['image'], value=card['value'],
+                                         suit=card['suit'], code=card['code'])
             i += 1
+        self.load_images()
 
+    def load_images(self):
+        path = 'resources/card_images'
+        if not os.path.exists(path):
+            os.makedirs(path)
+        consume(consume(self.load_image(path, card) for card in self.players[i].hand) for i in range(0, 2))
+        consume(consume(self.load_image(path, card) for card in self.players[i].hidden) for i in range(0, 2))
+        consume(consume(self.load_image(path, card) for card in self.piles[i].hidden) for i in range(0, 2))
+        consume(self.load_image(path, self.piles[i].visible) for i in range(0, 2))
 
+    def load_image(self, path: str, card: Card):
+        path = 'resources/card_images'
+        if not os.path.exists(path + '/' + card.code + '.png'):
+            response = requests.get(card.image)
+            with open(path + '/' + card.code + '.png', 'wb') as file:
+                file.write(response.content)
