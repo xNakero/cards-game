@@ -291,29 +291,9 @@ class Deck:
 
     def load_image(self, path: str, card: Card):
         path = 'resources/card_images'
-        if not os.path.exists(path + '/' + card.code + '.png'):
-            response = requests.get(card.image)
-            with open(path + '/' + card.code + '.png', 'wb') as file:
-                file.write(response.content)
+        if not card is None:
+            if not os.path.exists(path + '/' + card.code + '.png'):
+                response = requests.get(card.image)
+                with open(path + '/' + card.code + '.png', 'wb') as file:
+                    file.write(response.content)
 
-
-"""
-s = Deck()
-s.load_data_new_game('x', 'd')
-s.save_deck_to_api()
-s.save_id_to_file()
-s.save_deck_to_json()
-d = Deck()
-d.open_id_from_file()
-l = d.deck_id
-d.load_deck_from_api('x', 'd', l)
-d.print_lists()
-"""
-"""
-s = Deck()
-s.open_id_from_file()
-l = s.deck_id
-d = Deck()
-d.open_deck_from_json()
-d.print_lists()
-"""

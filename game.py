@@ -1,4 +1,6 @@
+import asyncio
 import sys
+import threading
 from dataclasses import dataclass, field
 from typing import List
 
@@ -96,14 +98,15 @@ class Game:
 
     def game(self, start_type: str = 'new game'):
         self.screen.fill((0, 0, 0, 0))
+        self.deck = cards.Deck()
         if start_type == 'new game':
-            self.deck.load_data_new_game(name_one='X', name_two='D')
+            self.deck.load_data_new_game(name_one='player 1', name_two='player 2')
         elif start_type == 'json save':
             self.deck.open_deck_from_json()
         elif start_type == 'api save':
             self.deck.open_id_from_file()
-            id = self.deck.deck_id
-            self.deck.load_deck_from_api(name_one='x', name_two='d', deck_id=id)
+            deck_id = self.deck.deck_id
+            self.deck.load_deck_from_api(name_one='player 1', name_two='player 2', deck_id=deck_id)
         self.chosen_card = [-1 for i in range(0, 2)]
         run = True
         while run:
@@ -164,11 +167,18 @@ class Game:
                         self.deck.add_missing_cards(player_id=1)
                     elif event.key == K_SPACE:
                         self.deck.turn_cards_on_piles()
+                    elif event.key == K_i:
+                        self.save()
+                    elif event.key == K_o:
+                        self.save('file')
+                    elif event.key == K_p:
+                        self.save('api')
+                    elif event.key == K_ESCAPE:
+                        run = False
             pygame.display.update()
 
     def draw_cards(self):
         mx, my = pygame.mouse.get_pos()
-        width_piles = 0
 
         for i in range(0, 2):
             # hand
@@ -244,12 +254,35 @@ class Game:
             self.deck.turn_cards_on_piles()
         self.screen.blit(card, card_rect)
 
+    def save(self, type: str = 'json'):
+        self.screen.fill(self.WHITE)
+        run = threading.Event()
+        threading.Thread(target=self.save_thread, args=[type, run]).start()
+        while not run.is_set():
+            self.draw_text_menu(text='SAVING', color=self.BLACK, height=400, type='else')
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    pygame.quit()
+                    sys.exit()
+            pygame.display.update()
+
+    def save_thread(self, type: str, event):
+        if type == 'file':
+            self.deck.save_id_to_file()
+        elif type == 'api':
+            self.deck.save_deck_to_api()
+        else:
+            self.deck.save_deck_to_json()
+        event.set()
+
     def end_game(self, name: str):
         self.screen.fill((0, 0, 0))
         background = pygame.image.load('resources/board_background.png')
         self.screen.blit(background, (0, 0))
         run = True
         while run:
+            self.draw_text_menu(text='winner is ' + name, color=self.WHITE, height=400, type='else')
+            self.draw_text_menu(text='press any key to return to menu', color=self.WHITE, height=600)
             for event in pygame.event.get():
                 if event.type == QUIT:
                     pygame.quit()
@@ -268,4 +301,4 @@ class Game:
         self.screen.blit(text_obj, text_rect)
 
 g = Game()
-g.run()
+g.end_game('XD')
