@@ -56,35 +56,42 @@ class Deck:
         new_deck = requests.get("https://deckofcardsapi.com/api/deck/new/shuffle")
         self.deck_id = new_deck.json()['deck_id']
         response = requests.get('https://deckofcardsapi.com/api/deck/' + self.deck_id + '/draw/?count=52')
-        response = response.json()
-        cards = list()
-        for el in response.get('cards'):
-            cards.append(el)
-        for i in range(0, 15):
-            for j in range(0, 2):
-                self.players[j].hidden \
-                    .append(Card(image=cards[i + (j * 15)]['image'], value=cards[i + (j * 15)]['value'],
-                                 suit=cards[i + (j * 15)]['suit'],
-                                 code=cards[i + (j * 15)]['code']))
-        for i in range(30, 35):
-            for j in range(0, 2):
-                self.players[j].hand \
-                    .append(
-                    Card(image=cards[i + j * 5]['image'], value=cards[i + j * 5]['value'],
-                         suit=cards[i + j * 5]['suit'],
-                         code=cards[i + j * 5]['code']))
-        for i in range(40, 45):
-            for j in range(0, 2):
-                self.piles[j].hidden \
-                    .append(
-                    Card(image=cards[i + j * 5]['image'], value=cards[i + j * 5]['value'],
-                         suit=cards[i + j * 5]['suit'],
-                         code=cards[i + j * 5]['code']))
-        self.piles[0].visible = Card(image=cards[50]['image'], value=cards[50]['value'], suit=cards[50]['suit'],
-                                     code=cards[50]['code'])
-        self.piles[1].visible = Card(image=cards[51]['image'], value=cards[51]['value'], suit=cards[51]['suit'],
-                                     code=cards[51]['code'])
-        self.load_images()
+        not_loaded = True
+        while not_loaded:
+            if response.status_code == 200:
+                response = response.json()
+                cards = list()
+                for el in response.get('cards'):
+                    cards.append(el)
+                for i in range(0, 15):
+                    for j in range(0, 2):
+                        self.players[j].hidden \
+                            .append(Card(image=cards[i + (j * 15)]['image'], value=cards[i + (j * 15)]['value'],
+                                         suit=cards[i + (j * 15)]['suit'],
+                                         code=cards[i + (j * 15)]['code']))
+                for i in range(30, 35):
+                    for j in range(0, 2):
+                        self.players[j].hand \
+                            .append(
+                            Card(image=cards[i + j * 5]['image'], value=cards[i + j * 5]['value'],
+                                 suit=cards[i + j * 5]['suit'],
+                                 code=cards[i + j * 5]['code']))
+                for i in range(40, 45):
+                    for j in range(0, 2):
+                        self.piles[j].hidden \
+                            .append(
+                            Card(image=cards[i + j * 5]['image'], value=cards[i + j * 5]['value'],
+                                 suit=cards[i + j * 5]['suit'],
+                                 code=cards[i + j * 5]['code']))
+                self.piles[0].visible = Card(image=cards[50]['image'], value=cards[50]['value'], suit=cards[50]['suit'],
+                                             code=cards[50]['code'])
+                self.piles[1].visible = Card(image=cards[51]['image'], value=cards[51]['value'], suit=cards[51]['suit'],
+                                             code=cards[51]['code'])
+                self.load_images()
+                not_loaded = False
+            else:
+                print('error - code not 200')
+
 
     def play_card(self, player_id: int, pile_id: int, card_id: int):
         if self.can_be_placed(player_id, pile_id, card_id):

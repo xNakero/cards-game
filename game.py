@@ -66,7 +66,6 @@ class Game:
             start_button.center = (self.WINDOW_WIDTH / 2, 300)
             if start_button.collidepoint((mx, my)):
                 if self.click:
-                    self.load('new game')
                     self.game('new game')
             pygame.draw.rect(self.screen, self.WHITE, start_button)
             self.draw_text('NEW GAME', self.BLACK, 300)
@@ -75,7 +74,6 @@ class Game:
             load_game_from_api_button.center = (self.WINDOW_WIDTH / 2, 500)
             if load_game_from_api_button.collidepoint((mx, my)):
                 if self.click:
-                    self.load('api save')
                     self.game('api save')
             pygame.draw.rect(self.screen, self.WHITE, load_game_from_api_button)
             self.draw_text('LOAD GAME FROM API', self.BLACK, 500)
@@ -84,7 +82,6 @@ class Game:
             load_game_from_save_button.center = (self.WINDOW_WIDTH / 2, 700)
             if load_game_from_save_button.collidepoint((mx, my)):
                 if self.click:
-                    self.load()
                     self.game('json save')
             pygame.draw.rect(self.screen, self.WHITE, load_game_from_save_button)
             self.draw_text('LOAD GAME FROM SAVE', self.BLACK, 700)
@@ -99,7 +96,7 @@ class Game:
                         self.click = True
             pygame.display.update()
 
-    def load(self, type: str = 'json save'):
+    """def load(self, type: str = 'json save'):
         self.screen.fill(self.WHITE)
         run = threading.Event()
         threading.Thread(target=self.load_thread, args=[type, run]).start()
@@ -121,8 +118,9 @@ class Game:
             self.deck.load_deck_from_api(name_one='player 1', name_two='player 2', deck_id=deck_id)
         else:
             self.deck.open_deck_from_json()
-        event.set()
-    """def save(self, type: str = 'json'):
+        event.set()"""
+
+    def save(self, type: str = 'json'):
         self.screen.fill(self.WHITE)
         run = threading.Event()
         threading.Thread(target=self.save_thread, args=[type, run]).start()
@@ -141,11 +139,13 @@ class Game:
             self.deck.save_deck_to_api()
         else:
             self.deck.save_deck_to_json()
-        event.set()"""
+        event.set()
 
     def game(self, start_type: str = 'new game'):
+        #self.load(start_type)
+        #caused an unknown error that made game load in loop
         self.screen.fill((0, 0, 0))
-        """self.deck = cards.Deck()
+        self.deck = cards.Deck()
         if start_type == 'new game':
             self.deck.load_data_new_game(name_one='player 1', name_two='player 2')
         elif start_type == 'json save':
@@ -154,13 +154,11 @@ class Game:
             self.deck.open_id_from_file()
             deck_id = self.deck.deck_id
             self.deck.load_deck_from_api(name_one='player 1', name_two='player 2', deck_id=deck_id)
-        """
+
         self.chosen_card = [-1 for i in range(0, 2)]
 
         run = True
         while run:
-            pygame.event.pump()
-            pygame.time.delay(15)
             self.draw_text('temp' + start_type, self.BLACK, 200)
             background = pygame.image.load('resources/board_background.png')
             self.screen.blit(background, (0, 0))
@@ -168,7 +166,6 @@ class Game:
             self.draw_text(text='I - save to json', color=self.WHITE, height=300, width=1000)
             self.draw_text(text='O - save to file', color=self.WHITE, height=400, width=1000)
             self.draw_text(text='P - save to api', color=self.WHITE, height=500, width=1000)
-            self
             self.click = False
             for event in pygame.event.get():
                 if event.type == QUIT:
