@@ -207,6 +207,9 @@ class Deck:
             for card in resp:
                 self.piles[i].visible = Card(image=card['image'], value=card['value'], suit=card['suit'],
                                              code=card['code'])
+            if len(self.players[i].hand) < 5:
+                consume(self.players[i].hand.append(None) for j in range(0, 5 - len(self.players[i].hand)))
+
         self.load_images()
 
     def print_lists(self):
@@ -259,23 +262,29 @@ class Deck:
         print(data.get('players'))
         for el in data['players']:
             for card in el['hand']:
-                self.players[i].hand.append(
-                    Card(image=card['image'], value=card['value'], suit=card['suit'], code=card['code']))
+                if card is not None:
+                    self.players[i].hand.append(
+                        Card(image=card['image'], value=card['value'], suit=card['suit'], code=card['code']))
             for card in el['hidden']:
-                self.players[i].hidden.append(
-                    Card(image=card['image'], value=card['value'], suit=card['suit'], code=card['code']))
+                if card is not None:
+                    self.players[i].hidden.append(
+                        Card(image=card['image'], value=card['value'], suit=card['suit'], code=card['code']))
             self.players[i].name = el['name']
             i += 1
 
         i = 0
         for el in data.get('piles'):
             for card in el['hidden']:
-                self.piles[i].hidden.append(
-                    Card(image=card['image'], value=card['value'], suit=card['suit'], code=card['code']))
+                if card is not None:
+                    self.piles[i].hidden.append(
+                        Card(image=card['image'], value=card['value'], suit=card['suit'], code=card['code']))
             self.piles[i].visible = Card(image=el['visible']['image'], value=el['visible']['value'],
                                          suit=el['visible']['suit'], code=el['visible']['code'])
             i += 1
         self.load_images()
+        for i in range(0, 2):
+            if len(self.players[i].hand) < 5:
+                consume(self.players[i].hand.append(None) for j in range(0, 5 - len(self.players[i].hand)))
         print('ended open from json')
 
     def load_images(self):
