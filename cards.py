@@ -91,6 +91,8 @@ class Deck:
                 not_loaded = False
             else:
                 print('error - code not 200')
+                print(self.deck_id)
+                response = requests.get('https://deckofcardsapi.com/api/deck/' + self.deck_id + '/draw/?count=52')
 
 
     def play_card(self, player_id: int, pile_id: int, card_id: int):
