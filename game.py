@@ -127,27 +127,6 @@ class Game:
             self.deck.open_deck_from_json()
         event.set()"""
 
-    def save(self, type: str = 'json'):
-        self.screen.fill(self.WHITE)
-        run = threading.Event()
-        threading.Thread(target=self.save_thread, args=[type, run]).start()
-        while not run.is_set():
-            self.draw_text(text='SAVING', color=self.BLACK, height=400, type='else')
-            for event in pygame.event.get():
-                if event.type == QUIT:
-                    pygame.quit()
-                    sys.exit()
-            pygame.display.update()
-
-    def save_thread(self, type: str, event):
-        if type == 'file':
-            self.deck.save_id_to_file()
-        elif type == 'api':
-            self.deck.save_deck_to_api()
-        else:
-            self.deck.save_deck_to_json()
-        event.set()
-
     def game(self, start_type: str = 'new game'):
         #self.load(start_type)
         #caused an unknown error that made game load in loop
@@ -170,9 +149,8 @@ class Game:
             background = pygame.image.load('resources/board_background.png')
             self.screen.blit(background, (0, 0))
             self.draw_cards()
-            self.draw_text(text='I - save to json', color=self.WHITE, height=300, width=1000)
-            self.draw_text(text='O - save to file', color=self.WHITE, height=400, width=1000)
-            self.draw_text(text='P - save to api', color=self.WHITE, height=500, width=1000)
+            self.draw_text(text='I - save to json', color=self.WHITE, height=350, width=1000)
+            self.draw_text(text='O - save to api', color=self.WHITE, height=450, width=1000)
             self.click = False
             for event in pygame.event.get():
                 if event.type == QUIT:
@@ -229,8 +207,6 @@ class Game:
                     elif event.key == K_i:
                         self.save()
                     elif event.key == K_o:
-                        self.save('file')
-                    elif event.key == K_p:
                         self.save('api')
                     elif event.key == K_ESCAPE:
                         run = False
@@ -312,6 +288,26 @@ class Game:
         if card_rect.collidepoint(mx, my) and self.click:
             self.deck.turn_cards_on_piles()
         self.screen.blit(card, card_rect)
+
+    def save(self, save_type: str = 'json'):
+        self.screen.fill(self.WHITE)
+        run = threading.Event()
+        threading.Thread(target=self.save_thread, args=[save_type, run]).start()
+        while not run.is_set():
+            self.draw_text(text='SAVING', color=self.BLACK, height=400, type='else')
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    pygame.quit()
+                    sys.exit()
+            pygame.display.update()
+
+    def save_thread(self, save_type: str, event):
+        if save_type == 'api':
+            self.deck.save_deck_to_api()
+            self.deck.save_id_to_file()
+        else:
+            self.deck.save_deck_to_json()
+        event.set()
 
     def end_game(self, name: str):
         self.screen.fill((0, 0, 0))
