@@ -315,3 +315,12 @@ class Deck:
                 with open(path + '/' + card.code + '.png', 'wb') as file:
                     file.write(response.content)
 
+    def json_save_exists(self) -> bool:
+        if os.path.exists('resources/saves/save.json'):
+            return True
+        return False
+
+    def deck_id_save_exists(self):
+        if os.path.exists('resources/saves/deck_id.txt'):
+            return True
+        return False

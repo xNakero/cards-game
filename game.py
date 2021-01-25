@@ -20,6 +20,7 @@ class Game:
     chosen_card: List[int] = field(default_factory=list)
     WHITE = (255, 255, 255)
     BLACK = (0, 0, 0)
+    GREY = (120, 114, 118)
     CARD_WIDTH = 113
     CARD_HEIGHT = 157
     WINDOW_WIDTH = 1200
@@ -72,18 +73,24 @@ class Game:
 
             load_game_from_api_button = pygame.Rect(0, 0, self.MENU_BUTTON_WIDTH, self.MENU_BUTTON_HEIGHT)
             load_game_from_api_button.center = (self.WINDOW_WIDTH / 2, 500)
-            if load_game_from_api_button.collidepoint((mx, my)):
+            if load_game_from_api_button.collidepoint((mx, my)) and self.deck.deck_id_save_exists():
                 if self.click:
                     self.game('api save')
-            pygame.draw.rect(self.screen, self.WHITE, load_game_from_api_button)
+            if self.deck.deck_id_save_exists():
+                pygame.draw.rect(self.screen, self.WHITE, load_game_from_api_button)
+            else:
+                pygame.draw.rect(self.screen, self.GREY, load_game_from_api_button)
             self.draw_text('LOAD GAME FROM API', self.BLACK, 500)
 
             load_game_from_save_button = pygame.Rect(0, 0, self.MENU_BUTTON_WIDTH, self.MENU_BUTTON_HEIGHT)
             load_game_from_save_button.center = (self.WINDOW_WIDTH / 2, 700)
-            if load_game_from_save_button.collidepoint((mx, my)):
+            if load_game_from_save_button.collidepoint((mx, my)) and self.deck.json_save_exists():
                 if self.click:
                     self.game('json save')
-            pygame.draw.rect(self.screen, self.WHITE, load_game_from_save_button)
+            if self.deck.json_save_exists():
+                pygame.draw.rect(self.screen, self.WHITE, load_game_from_save_button)
+            else:
+                pygame.draw.rect(self.screen, self.GREY, load_game_from_save_button)
             self.draw_text('LOAD GAME FROM SAVE', self.BLACK, 700)
 
             self.click = False
