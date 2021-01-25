@@ -52,12 +52,15 @@ class Game:
                     sys.exit()
             pygame.display.update()
 
+    def menu_background(self):
+        self.screen.fill((255, 0, 255))
+        background = pygame.image.load('resources/board_background.png')
+        self.screen.blit(background, (0, 0))
+
     def main_menu(self):
         run = True
         while run:
-            self.screen.fill((255, 0, 255))
-            background = pygame.image.load('resources/board_background.png')
-            self.screen.blit(background, (0, 0))
+            self.menu_background()
 
             self.draw_text('main menu', self.BLACK, 100, 'head')
 
@@ -67,7 +70,7 @@ class Game:
             start_button.center = (self.WINDOW_WIDTH / 2, 300)
             if start_button.collidepoint((mx, my)):
                 if self.click:
-                    self.game('new game')
+                    self.load('new game')
             pygame.draw.rect(self.screen, self.WHITE, start_button)
             self.draw_text('NEW GAME', self.BLACK, 300)
 
@@ -75,7 +78,7 @@ class Game:
             load_game_from_api_button.center = (self.WINDOW_WIDTH / 2, 500)
             if load_game_from_api_button.collidepoint((mx, my)) and self.deck.deck_id_save_exists():
                 if self.click:
-                    self.game('api save')
+                    self.load('api save')
             if self.deck.deck_id_save_exists():
                 pygame.draw.rect(self.screen, self.WHITE, load_game_from_api_button)
             else:
@@ -86,7 +89,7 @@ class Game:
             load_game_from_save_button.center = (self.WINDOW_WIDTH / 2, 700)
             if load_game_from_save_button.collidepoint((mx, my)) and self.deck.json_save_exists():
                 if self.click:
-                    self.game('json save')
+                    self.load('json save')
             if self.deck.json_save_exists():
                 pygame.draw.rect(self.screen, self.WHITE, load_game_from_save_button)
             else:
@@ -103,29 +106,11 @@ class Game:
                         self.click = True
             pygame.display.update()
 
-    """def load(self, type: str = 'json save'):
-        self.screen.fill(self.WHITE)
-        run = threading.Event()
-        threading.Thread(target=self.load_thread, args=[type, run]).start()
-        while not run.is_set():
-            self.draw_text(text='LOADING', color=self.BLACK, height=400, type='else')
-            for event in pygame.event.get():
-                if event.type == QUIT:
-                    pygame.quit()
-                    sys.exit()
-            pygame.display.update()
-
-    def load_thread(self, start_type: str, event):
-        self.deck = cards.Deck()
-        if start_type == 'new game':
-            self.deck.load_data_new_game(name_one='player 1', name_two='player 2')
-        elif start_type == 'api save':
-            self.deck.open_id_from_file()
-            deck_id = self.deck.deck_id
-            self.deck.load_deck_from_api(name_one='player 1', name_two='player 2', deck_id=deck_id)
-        else:
-            self.deck.open_deck_from_json()
-        event.set()"""
+    def load(self, load_type: str = 'new game'):
+        self.menu_background()
+        self.draw_text('LOADING', self.WHITE, 400)
+        pygame.display.update()
+        self.game(load_type)
 
     def game(self, start_type: str = 'new game'):
         #self.load(start_type)
