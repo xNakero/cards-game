@@ -198,10 +198,15 @@ class Deck:
 
             resp = requests.get(
                 'https://deckofcardsapi.com/api/deck/' + self.deck_id + '/pile/player_' + str(i) + '_hidden/list/')
-            resp = resp.json().get('piles').get('player_' + str(i) + '_hidden').get('cards')
-            for card in resp:
-                self.players[i].hidden.append(
-                    Card(image=card['image'], value=card['value'], suit=card['suit'], code=card['code']))
+            if 'player_' + str(i) + '_hidden' in str(resp.json()):
+                print(True)
+            else:
+                print(False)
+            if 'player_' + str(i) + '_hidden' in str(resp.json()):
+                resp = resp.json().get('piles').get('player_' + str(i) + '_hidden').get('cards')
+                for card in resp:
+                    self.players[i].hidden.append(
+                        Card(image=card['image'], value=card['value'], suit=card['suit'], code=card['code']))
 
             resp = requests.get(
                 'https://deckofcardsapi.com/api/deck/' + self.deck_id + '/pile/pile_' + str(i) + '_hidden/list/')

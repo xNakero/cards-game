@@ -113,8 +113,6 @@ class Game:
         self.game(load_type)
 
     def game(self, start_type: str = 'new game'):
-        #self.load(start_type)
-        #caused an unknown error that made game load in loop
         self.screen.fill((0, 0, 0))
         self.deck = cards.Deck()
         if start_type == 'new game':
@@ -130,7 +128,6 @@ class Game:
 
         run = True
         while run:
-            self.draw_text('temp' + start_type, self.BLACK, 200)
             background = pygame.image.load('resources/board_background.png')
             self.screen.blit(background, (0, 0))
             self.draw_cards()
@@ -322,4 +319,4 @@ class Game:
         self.screen.blit(text_obj, text_rect)
 
 g = Game()
-g.end_game('XD')
+g.main_menu()
