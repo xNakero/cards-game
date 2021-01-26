@@ -1,4 +1,3 @@
-import asyncio
 import sys
 import threading
 from dataclasses import dataclass, field
@@ -61,40 +60,14 @@ class Game:
         run = True
         while run:
             self.menu_background()
-
             self.draw_text('main menu', self.BLACK, 100, 'head')
 
             mx, my = pygame.mouse.get_pos()
-
-            start_button = pygame.Rect(0, 0, self.MENU_BUTTON_WIDTH, self.MENU_BUTTON_HEIGHT)
-            start_button.center = (self.WINDOW_WIDTH / 2, 300)
-            if start_button.collidepoint((mx, my)):
-                if self.click:
-                    self.load('new game')
-            pygame.draw.rect(self.screen, self.WHITE, start_button)
-            self.draw_text('NEW GAME', self.BLACK, 300)
-
-            load_game_from_api_button = pygame.Rect(0, 0, self.MENU_BUTTON_WIDTH, self.MENU_BUTTON_HEIGHT)
-            load_game_from_api_button.center = (self.WINDOW_WIDTH / 2, 500)
-            if load_game_from_api_button.collidepoint((mx, my)) and self.deck.deck_id_save_exists():
-                if self.click:
-                    self.load('api save')
-            if self.deck.deck_id_save_exists():
-                pygame.draw.rect(self.screen, self.WHITE, load_game_from_api_button)
-            else:
-                pygame.draw.rect(self.screen, self.GREY, load_game_from_api_button)
-            self.draw_text('LOAD GAME FROM API', self.BLACK, 500)
-
-            load_game_from_save_button = pygame.Rect(0, 0, self.MENU_BUTTON_WIDTH, self.MENU_BUTTON_HEIGHT)
-            load_game_from_save_button.center = (self.WINDOW_WIDTH / 2, 700)
-            if load_game_from_save_button.collidepoint((mx, my)) and self.deck.json_save_exists():
-                if self.click:
-                    self.load('json save')
-            if self.deck.json_save_exists():
-                pygame.draw.rect(self.screen, self.WHITE, load_game_from_save_button)
-            else:
-                pygame.draw.rect(self.screen, self.GREY, load_game_from_save_button)
-            self.draw_text('LOAD GAME FROM SAVE', self.BLACK, 700)
+            load_types = ['new game', 'api save', 'json save']
+            texts = ['NEW GAME', 'LOAD GAME FROM API', 'LOAD GAME FROM SAVE']
+            heights = [300, 500, 700]
+            consume(self.menu_button(mx=mx, my=my, height=heights[i], load_type=load_types[i], text=texts[i])
+                    for i in range(0, 3))
 
             self.click = False
             for event in pygame.event.get():
@@ -105,6 +78,22 @@ class Game:
                     if event.button == 1:
                         self.click = True
             pygame.display.update()
+
+    def menu_button(self, mx: int, my: int, height: int, load_type: str, text: str):
+        button = pygame.Rect(0, 0, self.MENU_BUTTON_WIDTH, self.MENU_BUTTON_HEIGHT)
+        button.center = (self.WINDOW_WIDTH / 2, height)
+        if button.collidepoint((mx, my)):
+            if self.click:
+                if load_type == 'json save' and self.deck.json_save_exists() or \
+                        load_type == 'api save' and self.deck.deck_id_save_exists() or \
+                        load_type == 'new game':
+                    self.load(load_type)
+        if (load_type == 'json save' and self.deck.json_save_exists()) or (
+                load_type == 'api save' and self.deck.deck_id_save_exists()) or load_type == 'new game':
+            pygame.draw.rect(self.screen, self.WHITE, button)
+        else:
+            pygame.draw.rect(self.screen, self.GREY, button)
+        self.draw_text(text, self.BLACK, height)
 
     def load(self, load_type: str = 'new game'):
         self.menu_background()
@@ -224,7 +213,7 @@ class Game:
                     self.screen.blit(card, card_rect)
                 width += 150
             width += 50
-            #hidden
+            # hidden
             if len(self.deck.players[i].hidden) > 0:
                 card = pygame.image.load('resources/card_back.png')
                 card = pygame.transform.scale(card, (self.CARD_WIDTH, self.CARD_HEIGHT))
@@ -234,8 +223,8 @@ class Game:
                 if i == 0 and card_rect.collidepoint(mx, my) and self.click:
                     self.deck.add_missing_cards(player_id=0)
                 self.screen.blit(card, card_rect)
-        #piles
-        #pile left hidden
+        # piles
+        # pile left hidden
         width_piles = self.CARD_WIDTH_PILES
         card = pygame.image.load('resources/card_back.png')
         card = pygame.transform.scale(card, (self.CARD_WIDTH, self.CARD_HEIGHT))
@@ -246,7 +235,7 @@ class Game:
             self.deck.turn_cards_on_piles()
         self.screen.blit(card, card_rect)
         width_piles += 150
-        #piles visible
+        # piles visible
         for i in range(0, 2):
             card = pygame.image.load('resources/card_images/' + self.deck.piles[i].visible.code + '.png')
             card = pygame.transform.scale(card, (self.CARD_WIDTH, self.CARD_HEIGHT))
@@ -261,7 +250,7 @@ class Game:
                 self.chosen_card[0] = -1
             self.screen.blit(card, card_rect)
             width_piles += 150
-        #right pile hidden
+        # right pile hidden
         card = pygame.image.load('resources/card_back.png')
         card = pygame.transform.scale(card, (self.CARD_WIDTH, self.CARD_HEIGHT))
         card_rect = card.get_rect()
@@ -309,7 +298,7 @@ class Game:
 
     def draw_text(self, text, color, height: int, type: str = 'button', width: int = None):
         if width is None:
-            width = self.WINDOW_WIDTH/2
+            width = self.WINDOW_WIDTH / 2
         if type == 'head':
             text_obj = self.MENU_HEADLINE_FONT.render(text, True, color)
         else:
@@ -317,6 +306,7 @@ class Game:
         text_rect = text_obj.get_rect()
         text_rect.center = (width, height)
         self.screen.blit(text_obj, text_rect)
+
 
 g = Game()
 g.main_menu()
