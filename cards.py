@@ -94,14 +94,11 @@ class Deck:
                 print(self.deck_id)
                 response = requests.get('https://deckofcardsapi.com/api/deck/' + self.deck_id + '/draw/?count=52')
 
-
     def play_card(self, player_id: int, pile_id: int, card_id: int):
         if self.can_be_placed(player_id, pile_id, card_id):
             self.piles[pile_id].hidden.append(self.piles[pile_id].visible)
             self.piles[pile_id].visible = self.players[player_id].hand[card_id]
             self.players[player_id].hand[card_id] = None
-            for i in range(0, 5):
-                print(self.players[player_id].hand[i])
 
     def can_be_placed(self, player_id: int, pile_id: int, card_id: int) -> bool:
         if self.players[player_id].hand[card_id] is not None:
@@ -119,9 +116,6 @@ class Deck:
                 break
             if card is None:
                 self.add_card(player_id, self.players[player_id].hand.index(card))
-        print(len(self.players[player_id].hand), len(self.players[player_id].hidden))
-        for card in self.players[player_id].hand:
-            print(card)
 
     def add_card(self, player_id: int, list_index: int):
         self.players[player_id].hand.pop(list_index)
@@ -192,7 +186,6 @@ class Deck:
                 'https://deckofcardsapi.com/api/deck/' + self.deck_id + '/pile/player_' + str(i) + '_hand/list/')
             resp = resp.json().get('piles').get('player_' + str(i) + '_hand').get('cards')
             for card in resp:
-                print(card['code'])
                 self.players[i].hand.append(
                     Card(image=card['image'], value=card['value'], suit=card['suit'], code=card['code']))
 
@@ -224,7 +217,7 @@ class Deck:
             if len(self.players[i].hand) < 5:
                 consume(self.players[i].hand.append(None) for j in range(0, 5 - len(self.players[i].hand)))
 
-        self.load_images()
+            self.load_images()
 
     def print_lists(self):
         print(self.deck_id)

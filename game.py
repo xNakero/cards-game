@@ -1,5 +1,6 @@
 import sys
 import threading
+import time
 from dataclasses import dataclass, field
 from typing import List
 
@@ -40,16 +41,6 @@ class Game:
         pygame.display.set_caption('Speed card game')
         self.MENU_HEADLINE_FONT = pygame.font.SysFont('comicsandms', 100)
         self.MENU_BUTTON_FONT = pygame.font.SysFont('comicsandms', 50)
-
-    def run(self):
-        while True:
-            for event in pygame.event.get():
-                if event.type == MOUSEMOTION:
-                    self.main_menu()
-                if event.type == QUIT:
-                    pygame.quit()
-                    sys.exit()
-            pygame.display.update()
 
     def menu_background(self):
         self.screen.fill((255, 0, 255))
