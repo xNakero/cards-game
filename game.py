@@ -18,6 +18,7 @@ class Game:
     deck = cards.Deck()
     # chosen card for players 0 or 1, 0 - 4 are cards, else is nothing chosen
     chosen_card: List[int] = field(default_factory=list)
+    music_played: bool = field(default=False)
     WHITE = (255, 255, 255)
     BLACK = (0, 0, 0)
     GREY = (120, 114, 118)
@@ -36,6 +37,7 @@ class Game:
 
     def __post_init__(self):
         pygame.init()
+        pygame.mixer.init()
         self.screen = pygame.display.set_mode((self.WINDOW_WIDTH, self.WINDOW_HEIGHT))
         self.screen.fill((255, 255, 255))
         pygame.display.set_caption('Speed card game')
@@ -48,10 +50,13 @@ class Game:
         self.screen.blit(background, (0, 0))
 
     def main_menu(self):
+        if(self.music_played):
+            pygame.mixer.music.stop()
+            self.music_played = False
         run = True
         while run:
             self.menu_background()
-            self.draw_text('main menu', self.BLACK, 100, 'head')
+            self.draw_text('main menu', self.WHITE, 100, 'head')
 
             mx, my = pygame.mouse.get_pos()
             load_types = ['new game', 'api save', 'json save']
@@ -172,6 +177,7 @@ class Game:
                         self.save('api')
                     elif event.key == K_ESCAPE:
                         run = False
+                        self.play_return_to_menu_sound()
             pygame.display.update()
 
     def draw_cards(self):
@@ -275,17 +281,28 @@ class Game:
         self.screen.fill((0, 0, 0))
         background = pygame.image.load('resources/board_background.png')
         self.screen.blit(background, (0, 0))
+        self.play_end_sound()
         run = True
         while run:
-            self.draw_text(text='winner is ' + name, color=self.WHITE, height=400, type='else')
-            self.draw_text(text='press any key to return to menu', color=self.WHITE, height=600)
+            mx, my = pygame.mouse.get_pos()
+            button = pygame.Rect(0, 0, self.MENU_BUTTON_WIDTH, self.MENU_BUTTON_HEIGHT)
+            button.center = (self.WINDOW_WIDTH / 2, 100)
+            if button.collidepoint(mx, my):
+                if self.click:
+                    self.main_menu()
+            pygame.draw.rect(self.screen, self.WHITE, button)
+            self.draw_text(text='MAIN MENU', color=self.BLACK, height=100)
+            self.draw_text(text=name + ' has won', color=self.WHITE, height=400, type='else')
+            self.draw_text(text='press the button to return to menu', color=self.WHITE, height=600)
+            self.click = False
             for event in pygame.event.get():
                 if event.type == QUIT:
                     pygame.quit()
                     sys.exit()
-                elif event.type == KEYDOWN:
-                    self.main_menu()
+                elif event.type == MOUSEBUTTONDOWN:
+                    self.click = True
             pygame.display.update()
+
 
     def draw_text(self, text, color, height: int, type: str = 'button', width: int = None):
         if width is None:
@@ -298,6 +315,17 @@ class Game:
         text_rect.center = (width, height)
         self.screen.blit(text_obj, text_rect)
 
+    def play_end_sound(self):
+        self.music_played = True
+        pygame.mixer.music.load('resources/sounds/polska_gurom.mp3')
+        pygame.mixer.music.set_volume(0.7)
+        pygame.mixer.music.play(-1)
+
+    def play_return_to_menu_sound(self):
+        pygame.mixer.music.stop()
+        pygame.mixer.music.load('resources/sounds/panowie_wychodzimy.mp3')
+        pygame.mixer.music.set_volume(1)
+        pygame.mixer.music.play(0)
 
 g = Game()
 g.main_menu()
